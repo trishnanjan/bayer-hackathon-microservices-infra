@@ -1,0 +1,27 @@
+name: Update Lambda with latest image
+
+on:
+  workflow_dispatch:
+  repository_dispatch:
+    types: [image-pushed]
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  update-lambda:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-region: ${{ secrets.AWS_REGION }}
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          role-session-name: github-actions
+
+      - name: Update Lambda function image
+        run: |
+          aws lambda update-function-code \
+            --function-name ${{ secrets.LAMBDA_FUNCTION_NAME }} \
+            --image-uri ${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPOSITORY }}:latest
