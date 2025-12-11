@@ -17,20 +17,7 @@ resource "aws_lambda_function" "this" {
   tags = { Service = var.service }
 }
 
-resource "aws_lambda_alias" "prod_alias" {
-  name             = var.lambda_alias_name
-  function_name    = aws_lambda_function.this.function_name
-  function_version = aws_lambda_function.this.version
-  description      = "Production alias for ${var.service}"
-}
-
-resource "aws_lambda_provisioned_concurrency_config" "pc" {
-  function_name                     = aws_lambda_function.this.function_name
-  qualifier                         = aws_lambda_alias.prod_alias.name
-  provisioned_concurrent_executions = var.provisioned_concurrency_count
-
-  depends_on = [aws_lambda_alias.prod_alias]
-}
+// Provisioned concurrency and alias removed — using default on-demand Lambda scaling
 
 output "lambda_function_name" {
   value = aws_lambda_function.this.function_name

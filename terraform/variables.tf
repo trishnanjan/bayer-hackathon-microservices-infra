@@ -52,14 +52,4 @@ variable "azs" {
   description = "Availability zones to use for subnet placement (ordered)"
 }
 
-variable "provisioned_concurrency_count" {
-  type    = number
-  default = 10
-  description = "Number of provisioned concurrency units for the Lambda alias"
-}
-
-variable "lambda_alias_name" {
-  type    = string
-  default = "prod"
-  description = "Alias name to publish for safe deployments (used with provisioned concurrency)"
-}
+// provisioned concurrency and alias removed — Lambda will use on-demand concurrency

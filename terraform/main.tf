@@ -17,8 +17,7 @@ module "lambda" {
   service = var.service
   ecr_repository_url = var.ecr_repository_url
   lambda_image_tag = var.lambda_image_tag
-  lambda_alias_name = var.lambda_alias_name
-  provisioned_concurrency_count = var.provisioned_concurrency_count
+  # alias and provisioned concurrency removed
   private_subnet_ids = module.vpc.private_subnet_ids
   lambda_sg_id = module.vpc.lambda_sg_id
   lambda_role_arn = module.iam.lambda_role_arn
