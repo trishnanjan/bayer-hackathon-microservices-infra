@@ -41,12 +41,6 @@ variable "ecr_repository_url" {
   description = "Full ECR repository URI (account.dkr.ecr.<region>.amazonaws.com/<repo>). If provided, Terraform will use this existing repo's URL for the Lambda image; the repo creation is handled by a separate pipeline."
 }
 
-variable "github_actions_role_arn" {
-  type        = string
-  default     = ""
-  description = "ARN of the GitHub Actions OIDC role to attach the Terraform state access policy to. Example: arn:aws:iam::123456789012:role/github-actions-deploy-role"
-}
-
 variable "lambda_function_name" {
   type    = string
   default = "patient-service-lambda"
