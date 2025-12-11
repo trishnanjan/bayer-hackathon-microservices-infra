@@ -37,7 +37,7 @@ variable "ecr_repository" {
 
 variable "ecr_repository_url" {
   type        = string
-  default     = ""
+  default     = "381492087649.dkr.ecr.ap-south-1.amazonaws.com/bayer-hackathon-registry"
   description = "Full ECR repository URI (account.dkr.ecr.<region>.amazonaws.com/<repo>). If provided, Terraform will use this existing repo's URL for the Lambda image; the repo creation is handled by a separate pipeline."
 }
 
