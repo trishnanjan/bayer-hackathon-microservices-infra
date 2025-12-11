@@ -48,6 +48,15 @@ jobs:
           role-session-name: github-actions
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
+      - name: Validate TF backend vars
+        run: |
+          echo "TF_STATE_BUCKET='${{ vars.TF_STATE_BUCKET }}'"
+          echo "TF_STATE_KEY='${{ vars.TF_STATE_KEY }}'"
+          echo "TF_STATE_DYNAMODB='${{ vars.TF_STATE_DYNAMODB }}'"
+          if [ -z "${{ vars.TF_STATE_BUCKET }}" ] || [ -z "${{ vars.TF_STATE_KEY }}" ] || [ -z "${{ vars.TF_STATE_DYNAMODB }}" ]; then
+            echo "ERROR: One or more Terraform backend variables are empty. Ensure repository Variables TF_STATE_BUCKET, TF_STATE_KEY and TF_STATE_DYNAMODB are set."
+            exit 1
+          fi
       - name: Terraform fmt
         run: terraform fmt -check
       - name: Terraform init
@@ -79,6 +88,15 @@ jobs:
           role-session-name: github-actions
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
+      - name: Validate TF backend vars
+        run: |
+          echo "TF_STATE_BUCKET='${{ vars.TF_STATE_BUCKET }}'"
+          echo "TF_STATE_KEY='${{ vars.TF_STATE_KEY }}'"
+          echo "TF_STATE_DYNAMODB='${{ vars.TF_STATE_DYNAMODB }}'"
+          if [ -z "${{ vars.TF_STATE_BUCKET }}" ] || [ -z "${{ vars.TF_STATE_KEY }}" ] || [ -z "${{ vars.TF_STATE_DYNAMODB }}" ]; then
+            echo "ERROR: One or more Terraform backend variables are empty. Ensure repository Variables TF_STATE_BUCKET, TF_STATE_KEY and TF_STATE_DYNAMODB are set."
+            exit 1
+          fi
       - name: Terraform init
         run: |
           terraform init \
@@ -113,6 +131,15 @@ jobs:
           role-session-name: github-actions
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
+      - name: Validate TF backend vars
+        run: |
+          echo "TF_STATE_BUCKET='${{ vars.TF_STATE_BUCKET }}'"
+          echo "TF_STATE_KEY='${{ vars.TF_STATE_KEY }}'"
+          echo "TF_STATE_DYNAMODB='${{ vars.TF_STATE_DYNAMODB }}'"
+          if [ -z "${{ vars.TF_STATE_BUCKET }}" ] || [ -z "${{ vars.TF_STATE_KEY }}" ] || [ -z "${{ vars.TF_STATE_DYNAMODB }}" ]; then
+            echo "ERROR: One or more Terraform backend variables are empty. Ensure repository Variables TF_STATE_BUCKET, TF_STATE_KEY and TF_STATE_DYNAMODB are set."
+            exit 1
+          fi
       - name: Terraform init
         run: |
           terraform init \
@@ -146,6 +173,15 @@ jobs:
           role-session-name: github-actions
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
+      - name: Validate TF backend vars
+        run: |
+          echo "TF_STATE_BUCKET='${{ vars.TF_STATE_BUCKET }}'"
+          echo "TF_STATE_KEY='${{ vars.TF_STATE_KEY }}'"
+          echo "TF_STATE_DYNAMODB='${{ vars.TF_STATE_DYNAMODB }}'"
+          if [ -z "${{ vars.TF_STATE_BUCKET }}" ] || [ -z "${{ vars.TF_STATE_KEY }}" ] || [ -z "${{ vars.TF_STATE_DYNAMODB }}" ]; then
+            echo "ERROR: One or more Terraform backend variables are empty. Ensure repository Variables TF_STATE_BUCKET, TF_STATE_KEY and TF_STATE_DYNAMODB are set."
+            exit 1
+          fi
       - name: Terraform init
         run: |
           terraform init \
