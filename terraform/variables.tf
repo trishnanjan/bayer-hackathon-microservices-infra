@@ -54,7 +54,7 @@ variable "azs" {
 
 variable "provisioned_concurrency_count" {
   type    = number
-  default = 20
+  default = 10
   description = "Number of provisioned concurrency units for the Lambda alias"
 }
 
