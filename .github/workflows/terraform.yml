@@ -50,22 +50,19 @@ jobs:
         uses: hashicorp/setup-terraform@v2
       - name: Validate TF backend vars
         run: |
-          echo "TF_STATE_BUCKET='${{ vars.TF_STATE_BUCKET }}'"
-          echo "TF_STATE_KEY='${{ vars.TF_STATE_KEY }}'"
-          echo "TF_STATE_DYNAMODB='${{ vars.TF_STATE_DYNAMODB }}'"
-          if [ -z "${{ vars.TF_STATE_BUCKET }}" ] || [ -z "${{ vars.TF_STATE_KEY }}" ] || [ -z "${{ vars.TF_STATE_DYNAMODB }}" ]; then
-            echo "ERROR: One or more Terraform backend variables are empty. Ensure repository Variables TF_STATE_BUCKET, TF_STATE_KEY and TF_STATE_DYNAMODB are set."
-            exit 1
-          fi
+          echo "TF_STATE_BUCKET='bayer-hackathon-tfstate'"
+          echo "TF_STATE_KEY='patient-service/terraform.tfstate'"
+          echo "TF_STATE_DYNAMODB='bayer-hackathon-state-ddb'"
+          # Hardcoded values provided; proceed
       - name: Terraform fmt
         run: terraform fmt -check
       - name: Terraform init
         run: |
           terraform init \
-              -backend-config="bucket=${{ vars.TF_STATE_BUCKET }}" \
-              -backend-config="key=${{ vars.TF_STATE_KEY }}" \
+              -backend-config="bucket=bayer-hackathon-tfstate" \
+              -backend-config="key=patient-service/terraform.tfstate" \
               -backend-config="region=${{ secrets.AWS_REGION }}" \
-              -backend-config="dynamodb_table=${{ vars.TF_STATE_DYNAMODB }}" \
+              -backend-config="dynamodb_table=bayer-hackathon-state-ddb" \
             -reconfigure
         working-directory: ./terraform
       - name: Terraform validate
@@ -90,20 +87,17 @@ jobs:
         uses: hashicorp/setup-terraform@v2
       - name: Validate TF backend vars
         run: |
-          echo "TF_STATE_BUCKET='${{ vars.TF_STATE_BUCKET }}'"
-          echo "TF_STATE_KEY='${{ vars.TF_STATE_KEY }}'"
-          echo "TF_STATE_DYNAMODB='${{ vars.TF_STATE_DYNAMODB }}'"
-          if [ -z "${{ vars.TF_STATE_BUCKET }}" ] || [ -z "${{ vars.TF_STATE_KEY }}" ] || [ -z "${{ vars.TF_STATE_DYNAMODB }}" ]; then
-            echo "ERROR: One or more Terraform backend variables are empty. Ensure repository Variables TF_STATE_BUCKET, TF_STATE_KEY and TF_STATE_DYNAMODB are set."
-            exit 1
-          fi
+          echo "TF_STATE_BUCKET='bayer-hackathon-tfstate'"
+          echo "TF_STATE_KEY='patient-service/terraform.tfstate'"
+          echo "TF_STATE_DYNAMODB='bayer-hackathon-state-ddb'"
+          # Hardcoded values provided; proceed
       - name: Terraform init
         run: |
           terraform init \
-              -backend-config="bucket=${{ vars.TF_STATE_BUCKET }}" \
-              -backend-config="key=${{ vars.TF_STATE_KEY }}" \
+              -backend-config="bucket=bayer-hackathon-tfstate" \
+              -backend-config="key=patient-service/terraform.tfstate" \
               -backend-config="region=${{ secrets.AWS_REGION }}" \
-              -backend-config="dynamodb_table=${{ vars.TF_STATE_DYNAMODB }}" \
+              -backend-config="dynamodb_table=bayer-hackathon-state-ddb" \
             -reconfigure
         working-directory: ./terraform
       - name: Terraform plan
@@ -133,20 +127,17 @@ jobs:
         uses: hashicorp/setup-terraform@v2
       - name: Validate TF backend vars
         run: |
-          echo "TF_STATE_BUCKET='${{ vars.TF_STATE_BUCKET }}'"
-          echo "TF_STATE_KEY='${{ vars.TF_STATE_KEY }}'"
-          echo "TF_STATE_DYNAMODB='${{ vars.TF_STATE_DYNAMODB }}'"
-          if [ -z "${{ vars.TF_STATE_BUCKET }}" ] || [ -z "${{ vars.TF_STATE_KEY }}" ] || [ -z "${{ vars.TF_STATE_DYNAMODB }}" ]; then
-            echo "ERROR: One or more Terraform backend variables are empty. Ensure repository Variables TF_STATE_BUCKET, TF_STATE_KEY and TF_STATE_DYNAMODB are set."
-            exit 1
-          fi
+          echo "TF_STATE_BUCKET='bayer-hackathon-tfstate'"
+          echo "TF_STATE_KEY='patient-service/terraform.tfstate'"
+          echo "TF_STATE_DYNAMODB='bayer-hackathon-state-ddb'"
+          # Hardcoded values provided; proceed
       - name: Terraform init
         run: |
           terraform init \
-              -backend-config="bucket=${{ vars.TF_STATE_BUCKET }}" \
-              -backend-config="key=${{ vars.TF_STATE_KEY }}" \
+              -backend-config="bucket=bayer-hackathon-tfstate" \
+              -backend-config="key=patient-service/terraform.tfstate" \
               -backend-config="region=${{ secrets.AWS_REGION }}" \
-              -backend-config="dynamodb_table=${{ vars.TF_STATE_DYNAMODB }}" \
+              -backend-config="dynamodb_table=bayer-hackathon-state-ddb" \
             -reconfigure
         working-directory: ./terraform
       - name: Download tfplan artifact
