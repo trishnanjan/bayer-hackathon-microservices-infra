@@ -1,0 +1,39 @@
+{
+    "Role": {
+        "Path": "/",
+        "RoleName": "github-actions-deploy-role",
+        "RoleId": "AROAVRUVTJNQZWH2A6WI4",
+        "Arn": "arn:aws:iam::381492087649:role/github-actions-deploy-role",
+        "CreateDate": "2025-12-11T07:14:34+00:00",
+        "AssumeRolePolicyDocument": {
+            "Version": "2012-10-17",
+            "Statement": [
+                {
+                    "Effect": "Allow",
+                    "Principal": {
+                        "Federated": "arn:aws:iam::381492087649:oidc-provider/token.actions.githubusercontent.com"
+                    },
+                    "Action": "sts:AssumeRoleWithWebIdentity",
+                    "Condition": {
+                        "StringEquals": {
+                            "token.actions.githubusercontent.com:aud": "sts.amazonaws.com"
+                        },
+                        "StringLike": {
+                            "token.actions.githubusercontent.com:sub": [
+                                "repo:trishnanjan/bayer-hackathon-microservices-infra:ref:refs/heads/*",
+                                "repo:kalyan2312/patient-service:ref:refs/heads/*",
+                                "repo:kalyan2312/apointment-service:ref:refs/heads/*"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        "Description": "GitHub Actions OIDC deploy role for kalyan2312/patient-service",
+        "MaxSessionDuration": 3600,
+        "RoleLastUsed": {
+            "LastUsedDate": "2025-12-11T11:21:18+00:00",
+            "Region": "ap-south-1"
+        }
+    }
+}
