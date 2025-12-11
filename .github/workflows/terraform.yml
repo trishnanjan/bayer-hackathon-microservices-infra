@@ -46,24 +46,6 @@ jobs:
       - name: Terraform plan
         run: terraform plan -out=tfplan -input=false
         working-directory: ./terraform
-
-  apply:
-    if: github.ref == 'refs/heads/main'
-    needs: [plan]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          aws-region: ${{ secrets.AWS_REGION }}
-          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
-          role-session-name: github-actions
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v2
-      - name: Terraform init
-        run: terraform init
-        working-directory: ./terraform
-      - name: Terraform apply
-        run: terraform apply -auto-approve
-        working-directory: ./terraform
+  # NOTE: The apply job has been intentionally removed so this repository
+  # only runs terraform fmt/validate and plan. Apply should be executed
+  # manually or from a protected CI job once changes are reviewed.
