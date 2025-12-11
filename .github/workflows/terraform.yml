@@ -75,6 +75,11 @@ jobs:
       - name: Terraform plan
         run: terraform plan -out=tfplan -input=false
         working-directory: ./terraform
+      - name: Upload tfplan artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: tfplan
+          path: ./terraform/tfplan
   apply:
     if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.run_apply == 'true' }}
     needs: [plan]
@@ -95,6 +100,11 @@ jobs:
       - name: Terraform init
         run: terraform init
         working-directory: ./terraform
+      - name: Download tfplan artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: tfplan
+          path: ./terraform
       - name: Terraform apply
         run: terraform apply -auto-approve tfplan
         working-directory: ./terraform
