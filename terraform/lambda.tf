@@ -1,5 +1,6 @@
 resource "aws_lambda_function" "patient" {
-  function_name = var.lambda_function_name
+  # Function name derived from selected service (e.g. patient-service -> patient-service-lambda)
+  function_name = "${var.service}-lambda"
   package_type  = "Image"
   image_uri     = "${aws_ecr_repository.patient.repository_url}:${var.lambda_image_tag}"
   role          = aws_iam_role.lambda_role.arn
@@ -19,7 +20,7 @@ resource "aws_lambda_function" "patient" {
   }
 
   tags = {
-    Service = "patient-service"
+    Service = var.service
   }
 }
 
@@ -28,7 +29,7 @@ resource "aws_lambda_alias" "prod_alias" {
   name             = var.lambda_alias_name
   function_name    = aws_lambda_function.patient.function_name
   function_version = aws_lambda_function.patient.version
-  description      = "Production alias for patient-service"
+  description      = "Production alias for ${var.service}"
 }
 
 resource "aws_lambda_provisioned_concurrency_config" "pc" {

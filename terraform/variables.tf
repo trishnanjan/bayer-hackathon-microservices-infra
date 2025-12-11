@@ -23,6 +23,18 @@ variable "lambda_image_tag" {
   default = "latest"
 }
 
+variable "service" {
+  type    = string
+  default = "patient-service"
+  description = "Logical service name (used to name resources and tags). Example: patient-service or apointment-service"
+}
+
+variable "ecr_repository" {
+  type    = string
+  default = "patient-service"
+  description = "ECR repository name where the container image is stored. This repo will be created if missing."
+}
+
 variable "lambda_function_name" {
   type    = string
   default = "patient-service-lambda"
