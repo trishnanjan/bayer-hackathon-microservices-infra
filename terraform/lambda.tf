@@ -27,24 +27,5 @@ resource "aws_lambda_function" "patient" {
 }
 
 # Create an alias for safe deployments and enable provisioned concurrency on the alias
-resource "aws_lambda_alias" "prod_alias" {
+// moved into modules/lambda
   name             = var.lambda_alias_name
-  function_name    = aws_lambda_function.patient.function_name
-  function_version = aws_lambda_function.patient.version
-  description      = "Production alias for ${var.service}"
-}
-
-resource "aws_lambda_provisioned_concurrency_config" "pc" {
-  function_name                       = aws_lambda_function.patient.function_name
-  qualifier                           = aws_lambda_alias.prod_alias.name
-  provisioned_concurrent_executions   = var.provisioned_concurrency_count
-
-  depends_on = [aws_lambda_alias.prod_alias]
-}
-
-resource "aws_lambda_permission" "apigw_invoke" {
-  statement_id  = "AllowExecutionFromAPIGateway"
-  action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.patient.function_name
-  principal     = "apigateway.amazonaws.com"
-}
