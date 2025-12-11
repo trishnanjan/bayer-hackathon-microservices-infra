@@ -1,0 +1,28 @@
+resource "aws_lambda_function" "this" {
+  function_name = "${var.service}-lambda"
+  package_type  = "Image"
+  image_uri     = "${var.ecr_repository_url}:${var.lambda_image_tag}"
+  role          = var.lambda_role_arn
+  memory_size   = 512
+  timeout       = 30
+  publish       = true
+
+  vpc_config {
+    subnet_ids         = var.private_subnet_ids
+    security_group_ids = [var.lambda_sg_id]
+  }
+
+  tracing_config { mode = "Active" }
+
+  tags = { Service = var.service }
+}
+
+// Provisioned concurrency and alias removed — using default on-demand Lambda scaling
+
+output "lambda_function_name" {
+  value = aws_lambda_function.this.function_name
+}
+
+output "lambda_invoke_arn" {
+  value = aws_lambda_function.this.invoke_arn
+}

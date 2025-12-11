@@ -1,14 +1,14 @@
 resource "aws_apigatewayv2_api" "http_api" {
-  name          = "patient-service-api"
+  name          = "${var.service}-api"
   protocol_type = "HTTP"
 }
 
 resource "aws_apigatewayv2_integration" "lambda_integration" {
-  api_id             = aws_apigatewayv2_api.http_api.id
-  integration_type   = "AWS_PROXY"
-  integration_uri    = aws_lambda_function.patient.invoke_arn
-  integration_method = "POST"
-  payload_format_version = "2.0"
+  api_id                  = aws_apigatewayv2_api.http_api.id
+  integration_type        = "AWS_PROXY"
+  integration_uri         = var.lambda_invoke_arn
+  integration_method      = "POST"
+  payload_format_version  = "2.0"
 }
 
 resource "aws_apigatewayv2_route" "default_route" {
@@ -26,7 +26,11 @@ resource "aws_apigatewayv2_stage" "default_stage" {
 resource "aws_lambda_permission" "apigw" {
   statement_id  = "AllowAPIGatewayInvoke"
   action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.patient.function_name
+  function_name = var.lambda_function_name
   principal     = "apigateway.amazonaws.com"
   source_arn    = "${aws_apigatewayv2_api.http_api.execution_arn}/*/*"
+}
+
+output "api_endpoint" {
+  value = aws_apigatewayv2_api.http_api.api_endpoint
 }

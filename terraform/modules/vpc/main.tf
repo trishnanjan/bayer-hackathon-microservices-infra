@@ -1,28 +1,22 @@
 resource "aws_vpc" "main" {
   cidr_block = var.vpc_cidr
   tags = {
-    Name = "patient-service-vpc"
+    Name = "${var.service}-vpc"
   }
 }
 
 resource "aws_internet_gateway" "igw" {
   vpc_id = aws_vpc.main.id
-  tags = { Name = "patient-service-igw" }
-}
-
-# Use available AZs in the region and distribute subnets across them
-data "aws_availability_zones" "available" {
-  state = "available"
+  tags = { Name = "${var.service}-igw" }
 }
 
 resource "aws_subnet" "public" {
-  # for_each uses index => cidr so we can pick an AZ from var.azs by index
   for_each = { for idx, cidr in var.public_subnets : tostring(idx) => cidr }
   vpc_id                  = aws_vpc.main.id
   cidr_block              = each.value
   availability_zone       = var.azs[tonumber(each.key) % length(var.azs)]
   map_public_ip_on_launch = true
-  tags = { Name = "public-${each.value}" }
+  tags = { Name = "${var.service}-public-${each.key}" }
 }
 
 resource "aws_subnet" "private" {
@@ -30,7 +24,7 @@ resource "aws_subnet" "private" {
   vpc_id            = aws_vpc.main.id
   cidr_block        = each.value
   availability_zone = var.azs[tonumber(each.key) % length(var.azs)]
-  tags = { Name = "private-${each.value}" }
+  tags = { Name = "${var.service}-private-${each.key}" }
 }
 
 resource "aws_route_table" "public" {
@@ -39,7 +33,7 @@ resource "aws_route_table" "public" {
     cidr_block = "0.0.0.0/0"
     gateway_id = aws_internet_gateway.igw.id
   }
-  tags = { Name = "public-rt" }
+  tags = { Name = "${var.service}-public-rt" }
 }
 
 resource "aws_route_table_association" "public_assoc" {
@@ -48,21 +42,20 @@ resource "aws_route_table_association" "public_assoc" {
   route_table_id = aws_route_table.public.id
 }
 
-# Allocate Elastic IPs and create one NAT Gateway per public subnet (one NAT per AZ)
+# EIP and NAT per public subnet
 resource "aws_eip" "nat" {
   for_each = aws_subnet.public
-  vpc = true
-  tags = { Name = "nat-eip-${each.key}" }
+  domain = "vpc"
+  tags = { Name = "${var.service}-nat-eip-${each.key}" }
 }
 
 resource "aws_nat_gateway" "nat" {
   for_each = aws_subnet.public
   allocation_id = aws_eip.nat[each.key].id
   subnet_id     = each.value.id
-  tags = { Name = "nat-gw-${each.key}" }
+  tags = { Name = "${var.service}-nat-gw-${each.key}" }
 }
 
-# Create a private route table per private subnet and route traffic to the NAT GW in the same AZ
 resource "aws_route_table" "private" {
   for_each = aws_subnet.private
   vpc_id = aws_vpc.main.id
@@ -70,7 +63,7 @@ resource "aws_route_table" "private" {
     cidr_block     = "0.0.0.0/0"
     nat_gateway_id = aws_nat_gateway.nat[each.key].id
   }
-  tags = { Name = "private-rt-${each.key}" }
+  tags = { Name = "${var.service}-private-rt-${each.key}" }
 }
 
 resource "aws_route_table_association" "private_assoc" {
@@ -81,11 +74,10 @@ resource "aws_route_table_association" "private_assoc" {
 
 # Security group for Lambdas placed in the VPC
 resource "aws_security_group" "lambda_sg" {
-  name        = "patient-service-lambda-sg"
+  name        = "${var.service}-lambda-sg"
   description = "Security group for Lambda functions in VPC"
   vpc_id      = aws_vpc.main.id
 
-  # Allow all outbound so Lambda can reach external services if needed
   egress {
     from_port   = 0
     to_port     = 0
@@ -93,7 +85,6 @@ resource "aws_security_group" "lambda_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  # Restrictive inbound (Lambda doesn't need inbound from internet)
   ingress {
     from_port   = 0
     to_port     = 0
@@ -101,5 +92,21 @@ resource "aws_security_group" "lambda_sg" {
     cidr_blocks = []
   }
 
-  tags = { Name = "patient-service-lambda-sg" }
+  tags = { Name = "${var.service}-lambda-sg" }
+}
+
+output "vpc_id" {
+  value = aws_vpc.main.id
+}
+
+output "private_subnet_ids" {
+  value = [for s in aws_subnet.private : s.id]
+}
+
+output "public_subnet_ids" {
+  value = [for s in aws_subnet.public : s.id]
+}
+
+output "lambda_sg_id" {
+  value = aws_security_group.lambda_sg.id
 }

@@ -9,7 +9,7 @@ data "aws_iam_policy_document" "lambda_assume_role" {
 }
 
 resource "aws_iam_role" "lambda_role" {
-  name               = "patient-service-lambda-role"
+  name               = "${var.service}-lambda-role"
   assume_role_policy = data.aws_iam_policy_document.lambda_assume_role.json
 }
 
@@ -29,7 +29,7 @@ resource "aws_iam_role_policy_attachment" "xray" {
 }
 
 resource "aws_iam_policy" "ecr_pull_policy" {
-  name        = "patient-service-ecr-pull"
+  name        = "${var.service}-ecr-pull"
   description = "Allow Lambda to pull images from ECR"
   policy      = jsonencode({
     Version = "2012-10-17",
@@ -51,4 +51,12 @@ resource "aws_iam_policy" "ecr_pull_policy" {
 resource "aws_iam_role_policy_attachment" "ecr_pull_attach" {
   role       = aws_iam_role.lambda_role.name
   policy_arn = aws_iam_policy.ecr_pull_policy.arn
+}
+
+output "lambda_role_arn" {
+  value = aws_iam_role.lambda_role.arn
+}
+
+output "lambda_role_name" {
+  value = aws_iam_role.lambda_role.name
 }

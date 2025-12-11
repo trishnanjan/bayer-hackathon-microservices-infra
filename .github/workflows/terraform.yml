@@ -6,6 +6,27 @@ on:
   pull_request:
     branches: [ main ]
   workflow_dispatch:
+    inputs:
+      service:
+        description: 'Service to deploy (patient-service or appointment-service)'
+        required: false
+        default: 'patient-service'
+      image_tag:
+        description: 'Container image tag to use for Lambda'
+        required: false
+        default: 'latest'
+      ecr_repository_url:
+        description: 'Optional full ECR repository URL override (if empty, TF default is used)'
+        required: false
+        default: ''
+      run_apply:
+        description: 'Set to true to run terraform apply (manual workflow dispatch only)'
+        required: false
+        default: 'false'
+      run_destroy:
+        description: 'Set to true to run terraform destroy (manual workflow dispatch only)'
+        required: false
+        default: 'false'
 
 permissions:
   id-token: write
@@ -14,14 +35,35 @@ permissions:
 jobs:
   fmt-validate:
     runs-on: ubuntu-latest
+    env:
+      TF_VAR_service: ${{ github.event.inputs.service }}
+      TF_VAR_lambda_image_tag: ${{ github.event.inputs.image_tag }}
     steps:
       - uses: actions/checkout@v4
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-region: ${{ secrets.AWS_REGION }}
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          role-session-name: github-actions
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
+      - name: Validate TF backend vars
+        run: |
+          echo "TF_STATE_BUCKET='bayer-hackathon-tfstate'"
+          echo "TF_STATE_KEY='patient-service/terraform.tfstate'"
+          echo "TF_STATE_DYNAMODB='bayer-hackathon-state-ddb'"
+          # Hardcoded values provided; proceed
       - name: Terraform fmt
         run: terraform fmt -check
       - name: Terraform init
-        run: terraform init
+        run: |
+          terraform init \
+              -backend-config="bucket=bayer-hackathon-tfstate" \
+              -backend-config="key=patient-service/terraform.tfstate" \
+              -backend-config="region=${{ secrets.AWS_REGION }}" \
+              -backend-config="dynamodb_table=bayer-hackathon-state-ddb" \
+            -reconfigure
         working-directory: ./terraform
       - name: Terraform validate
         run: terraform validate
@@ -30,24 +72,12 @@ jobs:
   plan:
     needs: [fmt-validate]
     runs-on: ubuntu-latest
+    env:
+      TF_VAR_service: ${{ github.event.inputs.service }}
+      TF_VAR_lambda_image_tag: ${{ github.event.inputs.image_tag }}
     steps:
       - uses: actions/checkout@v4
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v2
-      - name: Terraform init
-        run: terraform init
-        working-directory: ./terraform
-      - name: Terraform plan
-        run: terraform plan -out=tfplan -input=false
-        working-directory: ./terraform
-
-  apply:
-    if: github.ref == 'refs/heads/main'
-    needs: [plan]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Configure AWS credentials
+      - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-region: ${{ secrets.AWS_REGION }}
@@ -55,9 +85,106 @@ jobs:
           role-session-name: github-actions
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
+      - name: Validate TF backend vars
+        run: |
+          echo "TF_STATE_BUCKET='bayer-hackathon-tfstate'"
+          echo "TF_STATE_KEY='patient-service/terraform.tfstate'"
+          echo "TF_STATE_DYNAMODB='bayer-hackathon-state-ddb'"
+          # Hardcoded values provided; proceed
       - name: Terraform init
-        run: terraform init
+        run: |
+          terraform init \
+              -backend-config="bucket=bayer-hackathon-tfstate" \
+              -backend-config="key=patient-service/terraform.tfstate" \
+              -backend-config="region=${{ secrets.AWS_REGION }}" \
+              -backend-config="dynamodb_table=bayer-hackathon-state-ddb" \
+            -reconfigure
         working-directory: ./terraform
+      - name: Terraform plan
+        run: terraform plan -out=tfplan -input=false
+        working-directory: ./terraform
+      - name: Upload tfplan artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tfplan
+          path: ./terraform/tfplan
+  apply:
+    if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.run_apply == 'true' }}
+    needs: [plan]
+    runs-on: ubuntu-latest
+    env:
+      TF_VAR_service: ${{ github.event.inputs.service }}
+      TF_VAR_lambda_image_tag: ${{ github.event.inputs.image_tag }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-region: ${{ secrets.AWS_REGION }}
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          role-session-name: github-actions
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+      - name: Validate TF backend vars
+        run: |
+          echo "TF_STATE_BUCKET='bayer-hackathon-tfstate'"
+          echo "TF_STATE_KEY='patient-service/terraform.tfstate'"
+          echo "TF_STATE_DYNAMODB='bayer-hackathon-state-ddb'"
+          # Hardcoded values provided; proceed
+      - name: Terraform init
+        run: |
+          terraform init \
+              -backend-config="bucket=bayer-hackathon-tfstate" \
+              -backend-config="key=patient-service/terraform.tfstate" \
+              -backend-config="region=${{ secrets.AWS_REGION }}" \
+              -backend-config="dynamodb_table=bayer-hackathon-state-ddb" \
+            -reconfigure
+        working-directory: ./terraform
+      - name: Download tfplan artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: tfplan
+          path: ./terraform
       - name: Terraform apply
-        run: terraform apply -auto-approve
+        run: terraform apply -auto-approve tfplan
         working-directory: ./terraform
+  destroy:
+    if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.run_destroy == 'true' }}
+    runs-on: ubuntu-latest
+    env:
+      TF_VAR_service: ${{ github.event.inputs.service }}
+      TF_VAR_lambda_image_tag: ${{ github.event.inputs.image_tag }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-region: ${{ secrets.AWS_REGION }}
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          role-session-name: github-actions
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+      - name: Validate TF backend vars
+        run: |
+          echo "TF_STATE_BUCKET='${{ vars.TF_STATE_BUCKET }}'"
+          echo "TF_STATE_KEY='${{ vars.TF_STATE_KEY }}'"
+          echo "TF_STATE_DYNAMODB='${{ vars.TF_STATE_DYNAMODB }}'"
+          if [ -z "${{ vars.TF_STATE_BUCKET }}" ] || [ -z "${{ vars.TF_STATE_KEY }}" ] || [ -z "${{ vars.TF_STATE_DYNAMODB }}" ]; then
+            echo "ERROR: One or more Terraform backend variables are empty. Ensure repository Variables TF_STATE_BUCKET, TF_STATE_KEY and TF_STATE_DYNAMODB are set."
+            exit 1
+          fi
+      - name: Terraform init
+        run: |
+          terraform init \
+              -backend-config="bucket=${{ vars.TF_STATE_BUCKET }}" \
+              -backend-config="key=${{ vars.TF_STATE_KEY }}" \
+              -backend-config="region=${{ secrets.AWS_REGION }}" \
+              -backend-config="dynamodb_table=${{ vars.TF_STATE_DYNAMODB }}" \
+            -reconfigure
+        working-directory: ./terraform
+      - name: Terraform destroy
+        run: terraform destroy -auto-approve
+        working-directory: ./terraform
+  # NOTE: The apply job has been intentionally removed so this repository
+  # only runs terraform fmt/validate and plan. Apply should be executed
+  # manually or from a protected CI job once changes are reviewed.
