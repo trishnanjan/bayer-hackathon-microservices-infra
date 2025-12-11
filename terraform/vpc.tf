@@ -51,7 +51,8 @@ resource "aws_route_table_association" "public_assoc" {
 # Allocate Elastic IPs and create one NAT Gateway per public subnet (one NAT per AZ)
 resource "aws_eip" "nat" {
   for_each = aws_subnet.public
-  vpc = true
+  # `vpc` is deprecated; use `domain = "vpc"` per provider guidance
+  domain = "vpc"
   tags = { Name = "nat-eip-${each.key}" }
 }
 

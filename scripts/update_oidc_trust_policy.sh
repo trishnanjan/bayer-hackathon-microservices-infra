@@ -20,14 +20,13 @@ OIDC_PROVIDER_ARN="arn:aws:iam::${ACCOUNT_ID}:oidc-provider/token.actions.github
 TRUST_FILE="/tmp/${ROLE_NAME}-trust-policy.json"
 
 # Build the 'sub' list entries (allow any branch in each repo)
-SUBJECTS_JSON=""
+# We'll create a comma-separated list of JSON strings, then strip trailing comma
+SUBJECTS=""
 for repo in "${REPOS[@]}"; do
-  if [ -n "$SUBJECTS_JSON" ]; then
-    SUBJECTS_JSON+=",\n      \"repo:${repo}:ref:refs/heads/*\""
-  else
-    SUBJECTS_JSON="\"repo:${repo}:ref:refs/heads/*\""
-  fi
+  SUBJECTS+="\"repo:${repo}:ref:refs/heads/*\","
 done
+# remove trailing comma
+SUBJECTS=${SUBJECTS%,}
 
 cat > "$TRUST_FILE" <<EOF
 {
@@ -40,7 +39,7 @@ cat > "$TRUST_FILE" <<EOF
       "Condition": {
         "StringLike": {
           "token.actions.githubusercontent.com:sub": [
-            ${SUBJECTS_JSON}
+            ${SUBJECTS}
           ]
         },
         "StringEquals": {
