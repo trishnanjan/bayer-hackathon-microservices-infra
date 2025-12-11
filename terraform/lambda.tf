@@ -2,7 +2,9 @@ resource "aws_lambda_function" "patient" {
   # Function name derived from selected service (e.g. patient-service -> patient-service-lambda)
   function_name = "${var.service}-lambda"
   package_type  = "Image"
-  image_uri     = "${aws_ecr_repository.patient.repository_url}:${var.lambda_image_tag}"
+  # Use pre-existing ECR repository URL provided by the CI pipeline that builds images
+  # The variable `ecr_repository_url` should be set to the full repo URI (eg. 123456789012.dkr.ecr.us-east-1.amazonaws.com/patient-service)
+  image_uri     = "${var.ecr_repository_url}:${var.lambda_image_tag}"
   role          = aws_iam_role.lambda_role.arn
   memory_size   = 512
   timeout       = 30

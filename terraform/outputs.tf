@@ -5,7 +5,7 @@ output "api_endpoint" {
 
 output "ecr_repo_url" {
   description = "ECR repository URL"
-  value       = aws_ecr_repository.patient.repository_url
+  value       = var.ecr_repository_url
 }
 
 output "lambda_function_name" {

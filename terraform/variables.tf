@@ -35,6 +35,12 @@ variable "ecr_repository" {
   description = "ECR repository name where the container image is stored. This repo will be created if missing."
 }
 
+variable "ecr_repository_url" {
+  type        = string
+  default     = ""
+  description = "Full ECR repository URI (account.dkr.ecr.<region>.amazonaws.com/<repo>). If provided, Terraform will use this existing repo's URL for the Lambda image; the repo creation is handled by a separate pipeline."
+}
+
 variable "lambda_function_name" {
   type    = string
   default = "patient-service-lambda"
