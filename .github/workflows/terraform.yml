@@ -25,7 +25,7 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
       - name: Terraform fmt
-        run: terraform init -out=tfplan -input=false
+        run: terraform fmt -check
       - name: Terraform init
         run: terraform init
         working-directory: ./terraform
